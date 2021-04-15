@@ -1,0 +1,74 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+```{r}
+library(readr)
+library(lattice)
+train <- read_csv("~/Downloads/train.csv")
+```
+
+```{r}
+sapply(train, function(x) length(unique(x)))
+```
+
+```{r}
+train %>% group_by(cancellation_policy) %>% select(cancellation_policy) %>% unique()
+
+```
+
+
+
+```{r}
+train %>% group_by(property_type) %>% select(property_type) %>% unique()
+count(train, property_type) %>% mutate(relative_freq = (n/sum(n)))
+
+```
+
+```{r}
+library(ggplot2)
+ggplot(train, aes(x= cancellation_policy, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
+```
+```{r}
+train %>% group_by(room_type) %>% select(room_type) %>% unique()
+count(train, room_type) %>% mutate(relative_freq = (n/sum(n)))
+
+```
+```{r}
+ggplot(train, aes(x= room_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs room_type")
+
+```
+```{r}
+library(vcd)
+mosaic(~room_type + instant_bookable, data = train, shade = TRUE)
+
+```
+```{r}
+ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
+
+
+```
+
+```{r}
+train %>% group_by(bedrooms) %>% select(bedrooms) %>% unique()
+count(train, bedrooms) %>% mutate(relative_freq = (n/sum(n)))
+
+
+
+```
+
+```{r}
+ggplot(train, aes(x= bedrooms, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
+mean(train$bedrooms)
+train$bedrooms[is.na(train$bedrooms)]<-median(train$bedrooms,na.rm=TRUE)
+train$bedrooms
+median(train$bedrooms)
+mean(train$bedrooms)
+```
+
+```{r}
+train$amenities
+```
