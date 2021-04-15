@@ -1,0 +1,274 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+```{r}
+library(leaflet)
+library(readxl)
+library(dplyr)
+library(reticulate)
+```
+
+
+```{r}
+maindata <- read_excel("~/Documents/Spring2021/DataVisualization/Project/maindata.xlsx")
+tmp=maindata
+```
+
+Let look at how many unique values each column has
+
+```{r}
+sapply(maindata, function(x) length(unique(x)))
+```
+
+```{r}
+maindata %>% group_by(cancellation_policy) %>% select(cancellation_policy)%>% unique()
+```
+```{r}
+count(maindata, cancellation_policy) %>% mutate(relative_freq=(n/sum(n)))
+```
+
+
+```{r}
+maindata %>% group_by(bed_type) %>% select(bed_type)%>% unique()
+```
+
+```{r}
+library(dplyr)
+maindata %>% select(property_type) %>% count(property_type) %>% mutate(relative_freq=(n/sum(n)))
+```
+
+
+```{r}
+maindata %>% filter(city=="NYC") %>% select(bed_type) %>% count(bed_type) %>% mutate(relative_freq=(n/sum(n)))
+```
+
+
+```{r}
+library(ggplot2)
+maindata%>% ggplot( aes(x=cancellation_policy, y=log_price))+ geom_boxplot()+ ggtitle( "Boxplot for log_price vs cancellation policy")
+```
+
+```{r}
+ggplot(maindata, aes(x=bed_type, y=log_price))+ geom_boxplot()+ ggtitle( "Boxplot for log_price vs bed type")
+```
+
+```{r}
+ggplot(maindata, aes(x=cleaning_fee, y=log_price))+ geom_boxplot()+ ggtitle( "Boxplot for log_price vs cleaning fee")
+```
+Do some hypothesis testing.
+
+```{r}
+vcd::mosaic(~cleaning_fee+instant_bookable, data=maindata, shade=TRUE)
+```
+
+
+First, let us plot the different properties, using the latitude and longitude information given in our dataset. 
+```{r}
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~long, ~lat, color = "red",
+stroke=FALSE)
+m
+```
+From the map above, we can see that the properties listed in our datset are from six different locations: Los Angeles, New York, DC, Boston, Chicago, San Fransico etc. 
+
+
+## log_price for th different cities. 
+
+
+### NYC 
+
+```{r}
+
+rows = (maindata$city== "NYC") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~long, ~lat,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+Talk about which part of NYC has higher log_price and which part has lowest. 
+
+### Boston.
+
+```{r}
+
+rows = (maindata$city== "Boston") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~long, ~lat,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+
+
+### DC
+
+```{r}
+
+rows = (maindata$city== "DC") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~long, ~lat,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+
+###  San Francisco. 
+
+```{r}
+
+rows = (maindata$city== "SF") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~long, ~lat,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+
+### LA
+
+```{r}
+
+rows = (maindata$city== "LA") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~long, ~lat,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+
+We can see that along the edge there are properties that are high priced. 
+
+
+### Chicago
+
+```{r}
+
+rows = (maindata$city== "Chicago") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~long, ~lat,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+## Types of property 
+
+```{r}
+rows = (maindata$city== "Chicago") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$property_type,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~long, ~lat,radius = ~log_price,
+fillColor = ~mypalette(property_type),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~property_type, opacity=0.9,
+title = "Property type", position = "bottomright" )
+m
+max(maindata$log_price)
+```
+
