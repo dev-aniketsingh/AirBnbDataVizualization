@@ -8,6 +8,7 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 ```{r}
 library(readr)
 library(lattice)
+library(tidyverse)
 train <- read_csv("~/Downloads/train.csv")
 ```
 
@@ -25,27 +26,51 @@ train %>% group_by(cancellation_policy) %>% select(cancellation_policy) %>% uniq
 ```{r}
 train %>% group_by(property_type) %>% select(property_type) %>% unique()
 count(train, property_type) %>% mutate(relative_freq = (n/sum(n)))
+train %>% group_by(property_type) %>% select(property_type, log_price) %>%filter(property_type=="Apartment" | property_type =="Bed & Breakfast" | property_type =="Bungalow" | property_type == "Condominium" | property_type == "House" | property_type == "Loft" | property_type == "Townhouse") -> modified_property_type
+count(modified_property_type, property_type) 
 
+
+```
+
+```{r}
+ggplot(modified_property_type, aes(x= property_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs property_type")
 ```
 
 ```{r}
 library(ggplot2)
 ggplot(train, aes(x= cancellation_policy, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
 ```
+
 ```{r}
 train %>% group_by(room_type) %>% select(room_type) %>% unique()
 count(train, room_type) %>% mutate(relative_freq = (n/sum(n)))
 
 ```
+
 ```{r}
 ggplot(train, aes(x= room_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs room_type")
 
 ```
+
 ```{r}
 library(vcd)
 mosaic(~room_type + instant_bookable, data = train, shade = TRUE)
 
 ```
+
+```{r}
+library(vcd)
+mosaic(~cleaning_fee + city, data = train, shade = TRUE)
+
+```
+```{r}
+mosaic(~cleaning_fee + room_type, data = train, shade = TRUE)
+```
+```{r}
+fourfold(xtabs(~ instant_bookable + cleaning_fee, data = train))
+```
+
+
 ```{r}
 ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
 
@@ -55,19 +80,9 @@ ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplo
 ```{r}
 train %>% group_by(bedrooms) %>% select(bedrooms) %>% unique()
 count(train, bedrooms) %>% mutate(relative_freq = (n/sum(n)))
-
-
-
+hist(train$bedrooms)
 ```
 
-```{r}
-ggplot(train, aes(x= bedrooms, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
-mean(train$bedrooms)
-train$bedrooms[is.na(train$bedrooms)]<-median(train$bedrooms,na.rm=TRUE)
-train$bedrooms
-median(train$bedrooms)
-mean(train$bedrooms)
-```
 
 ```{r}
 train$amenities
