@@ -16,7 +16,10 @@ train <- read_csv("~/Downloads/train.csv")
 sapply(train, function(x) length(unique(x)))
 ```
 
+Hence, we see 29 different variable in the given dataset.
+
 ```{r}
+##The distinct cancellation_policy are recorded
 train %>% group_by(cancellation_policy) %>% select(cancellation_policy) %>% unique()
 
 ```
@@ -24,6 +27,7 @@ train %>% group_by(cancellation_policy) %>% select(cancellation_policy) %>% uniq
 
 
 ```{r}
+##Only 10 different distinct property_types are recorded
 train %>% group_by(property_type) %>% select(property_type) %>% unique()
 count(train, property_type) %>% mutate(relative_freq = (n/sum(n)))
 train %>% group_by(property_type) %>% select(property_type, log_price) %>%filter(property_type=="Apartment" | property_type =="Bed & Breakfast" | property_type =="Bungalow" | property_type == "Condominium" | property_type == "House" | property_type == "Loft" | property_type == "Townhouse") -> modified_property_type
@@ -33,21 +37,25 @@ count(modified_property_type, property_type)
 ```
 
 ```{r}
+##Those selected property_types were studied through the use of boxplot to see their relationship with log_price 
 ggplot(modified_property_type, aes(x= property_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs property_type")
 ```
 
 ```{r}
+##All the 5 different cancellation_policy were studied to see their relationship with log_price through the use of box plot
 library(ggplot2)
 ggplot(train, aes(x= cancellation_policy, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
 ```
 
 ```{r}
+##Three different room_types were studied and each of their relative frequency is calculated to find their individual share
 train %>% group_by(room_type) %>% select(room_type) %>% unique()
 count(train, room_type) %>% mutate(relative_freq = (n/sum(n)))
 
 ```
 
 ```{r}
+##Those 3 kinds of room_types were studied through the use of boxplot to see their relationship with log_price 
 ggplot(train, aes(x= room_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs room_type")
 
 ```
@@ -58,21 +66,33 @@ mosaic(~room_type + instant_bookable, data = train, shade = TRUE)
 
 ```
 
+From above mosaic plot we see, the two-tiles shaped deep blue correspond to only one cell having shared room_type and true instant_bookable whose residuals are greater than +4 indicating much greater frequency in this cell than would be found if the hypothesis of independence. The two-tile shaped  having shared room_type with false instant_bookable  and entire home/apt room_type with true instant_bookable corresponds to the residuals between -2.0 and -3.7 which indicates the combination is extremely rare under the hypothesis of independence.
+
 ```{r}
 library(vcd)
 mosaic(~cleaning_fee + city, data = train, shade = TRUE)
-
+mosaic(~city + cleaning_fee, data = train, shade = TRUE)
 ```
 ```{r}
+##similar case like above
 mosaic(~cleaning_fee + room_type, data = train, shade = TRUE)
 ```
 ```{r}
+#similar case like above
+mosaic(~city + cleaning_fee, data = train, shade = TRUE)
+```
+
+
+```{r}
+##these variables are highly significant
 fourfold(xtabs(~ instant_bookable + cleaning_fee, data = train))
 ```
 
 
 ```{r}
-ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
+##Those two conditions of cleaning fee(i.e. either yes or no) were studied through the use of boxplot to see their relationship with log_price 
+
+ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cleaning_fee")
 
 
 ```
@@ -82,8 +102,12 @@ train %>% group_by(bedrooms) %>% select(bedrooms) %>% unique()
 count(train, bedrooms) %>% mutate(relative_freq = (n/sum(n)))
 hist(train$bedrooms)
 ```
-
+There is highest number of single bedroom./
 
 ```{r}
 train$amenities
+train$host_has_profile_pic
+
+
 ```
+
