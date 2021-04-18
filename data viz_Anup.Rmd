@@ -9,14 +9,42 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 library(readr)
 library(lattice)
 library(tidyverse)
-train <- read_csv("~/Downloads/train.csv")
+train <- read_csv("train.csv")
 ```
+
+```{r}
+library(skimr)
+skim(train)
+```
+## GENERAL OVERVIEW OF THE DATA
+
+We use the Skimr library to perform Skim to get a general overview of the data. From the above information we can see that there are 74,111 rows in our data and 29 colums/variables. 
+
+Among these 29 variables in our data 15 data are character type, 4 are logical and 10 are numerical type.
+
+
+We can also see that there is a lot of missing datas. However, the variable with most frequency of missing data,
+and the ones that are most significant for our study are:
+
+
+First review                15864
+host_response_rate          18299
+review_scores_rating        16722
+
+In the quantitative variable the variance is greater than 0 for all our variables.
+
+When we look at the logican variable the 
+
+
+
+
+
+
 
 ```{r}
 sapply(train, function(x) length(unique(x)))
 ```
-
-Hence, we see 29 different variable in the given dataset.
+In our data there are  we see 29 different variable in the given dataset.
 
 ```{r}
 ##The distinct cancellation_policy are recorded
@@ -40,6 +68,9 @@ count(modified_property_type, property_type)
 ##Those selected property_types were studied through the use of boxplot to see their relationship with log_price 
 ggplot(modified_property_type, aes(x= property_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs property_type")
 ```
+
+
+
 
 ```{r}
 ##All the 5 different cancellation_policy were studied to see their relationship with log_price through the use of box plot
