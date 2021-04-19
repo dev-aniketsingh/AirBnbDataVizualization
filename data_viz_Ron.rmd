@@ -40,14 +40,14 @@ In the quantitative variable the variance is greater than 0 for all our variable
 
 There are also some index variable which are listed as character variables that do not contribute to our study. These index variables need to be addressed before we move to our study.
 
-When we look at the logical variable there are also factor level that appears to infrequent. The most insignificant infrequent factor level is stated below: 
+When we look at the logical variable there are also factor level that appears tobe infrequent. The most significant infrequent factor level is stated below: 
 
 host_has_profile_pic  TRU: 73697, FAL: 226
 
-These character variables times listed below has low number of n_unique data types so we further study these variables to see if they need to be converted to factor to be included in the study:
+These character variables listed below has low number of n_unique data types so we further study these variables to see if they need to be converted to factor to be included in the study:
 
 
-roperty_type
+property_type
 bed_type                    
 cancellation_policy        
 city                       
@@ -60,9 +60,8 @@ sapply(train, function(x) length(unique(x)))
 ```
 In our data there are  we see 29 different variable in the given dataset.
 
-subtitle:  In-Depth analysis and Study of data
 
-Now after the study of all the data in a surface level we further move to and in-depth study significant data to get more understanding of the variables: 
+Now after the study of all the data in a surface level we further move to and in-depth study of significant data to get more understanding of the variables: 
 
 ### 1)Cancellation policy 
 
@@ -87,7 +86,7 @@ train %>% mutate_at(vars(cancellation_policy),as.factor)%>% count(train$cancella
 
 We learn from the above display that cancellation_policy has 5 types. The types have been listed above 
 
-We now create a box plot to study the cancellation policy against log_price since the variables under study are quantitative variables: 
+We now create a box plot to study the cancellation policy against log_price since the variables under study are quantitative variables against qualitative variables:
 
 
 ```{r}
@@ -135,7 +134,7 @@ count(modified_property_type, property_type)
 The property type variable and the frequency of the most significant types are listed above in the table. We see that the Apartment type is the most frequent type followed by House. 
 
 
-We now create a box plot to study the property type against log_price since the variables under study are quantitative variables: 
+We now create a box plot to study the property type against log_price since the variables under study are quantitative variables against qualitative variables: 
 
 
 
@@ -161,7 +160,7 @@ Unusual:
 There are most outliers for apartment which is also reasonable as it has the highest frequency.
 
 
-## Room Type
+## 3) Room Type
 
 Now we look at Room Type variable to study it in more depth:
 
@@ -177,7 +176,7 @@ count(train, room_type) %>% mutate(relative_freq = (n/sum(n)))
 
 There are 3 types of room types namely Entire home/apt, Private room and Shared room. The frequency and relative frequency have been listed above. Shared room has the lowest relative frequency while Entire home/apt has the most relative frequency. 
 
-We now draw the box plot foor room_type vs log_price to look at the shape, center, outliers and spread of the data since the variables under study are quantitative variables:
+We now draw the box plot foor room_type vs log_price to look at the shape, center, outliers and spread of the data since the variables under study are quantitative variables against qualitative variables:
 
 ```{r}
 ##Those 3 kinds of room_types were studied through the use of boxplot to see their relationship with log_price 
@@ -204,6 +203,44 @@ There seems to be more outliers for Private room.
 
 
 
+### 4) Cleaning fee
+
+
+We will now investigate cleaning fee against log_price to further understand the data. For this we will plot a box plot as there is a qualitative and a quantitative variable:
+
+```{r}
+##Those two conditions of cleaning fee(i.e. either yes or no) were studied through the use of boxplot to see their relationship with log_price 
+
+ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cleaning_fee")
+
+
+```
+Shape:
+
+Both cleaning fee false and true has a close to normal distribution. 
+
+Center:
+The  median log_price is highest for cleaning_fee true than cleaning_fee false but it is very slight.  
+
+Spread:
+
+The IQR for both cleaning fee false and true are very much comparable and looks equal.  
+
+
+Unusual:
+
+There seems to be outliers for both cleaning fee false and true. 
+
+
+
+## Assosiation between the predictor variables
+
+
+Here, we try to investigate the relation/association between the predictor variables in our dataset to get the understanding of the predictor variables. We are also interested to see which predictor variables have similar effect.
+
+
+### room_type vs instant_bookable
+Initially we investigate room_type and instant_bookable.Since both the variables under study are both qualitative variables we used mosaic plot to investigate the association. 
 
 
 
@@ -215,41 +252,95 @@ mosaic(~room_type + instant_bookable, data = train, shade = TRUE)
 
 From above mosaic plot we see, the two-tiles shaped deep blue correspond to only one cell having shared room_type and true instant_bookable whose residuals are greater than +4 indicating much greater frequency in this cell than would be found if the hypothesis of independence. The two-tile shaped  having shared room_type with false instant_bookable  and entire home/apt room_type with true instant_bookable corresponds to the residuals between -2.0 and -3.7 which indicates the combination is extremely rare under the hypothesis of independence.
 
+
+
+
+### city vs cleaning_fee
+
+Now, we investigate the association between cleaning_fee and city using mosaic plot. 
+
 ```{r}
 library(vcd)
-mosaic(~cleaning_fee + city, data = train, shade = TRUE)
-mosaic(~city + cleaning_fee, data = train, shade = TRUE)
-```
-```{r}
-##similar case like above
-mosaic(~cleaning_fee + room_type, data = train, shade = TRUE)
-```
-```{r}
-#similar case like above
-mosaic(~city + cleaning_fee, data = train, shade = TRUE)
+mosaic(~ city+cleaning_fee , data = train, shade = TRUE)
 ```
 
+Based on above mosaic plot property with cleaning fee true in NYC and LA has the highest relative frequency.
+
+We can also see that there are more property with cleaning fee false in NYC than we would have expected if the variables were independent and there are less property with cleaning fee True in NYC than we would have expected if the variables were independent.
+
+However, there are fewer property with cleaning fee false in LA than we would have expected if the variables were independent and there are more property with cleaning fee true in LA than we would have expected if the variables were independent. 
+
+Hence, we can say that there seems to be association between two variables.
+
+
+
+
+### room_type vs cleaning_fee
+
+We will now investigate the room_type and cleaning_fee similarly using the mosaic plot: 
+
+```{r}
+##similar case like above
+mosaic(~ room_type+cleaning_fee, data = train, shade = TRUE)
+```
+
+
+Based on above mosaic plot Entire home/apt with cleaning fee true has the highest relative frequency.
+
+We can also see that there are more Entire home/apt with cleaning fee true than we would have expected if the variables were independent and there are less Entire home/apt with cleaning fee false than we would have expected if the variables were independent.
+
+However, there are fewer private room with cleaning fee true than we would have expected if the variables were independent and there are more  private room with cleaning fee false than we would have expected if the variables were independent. 
+
+Finally,there are fewer shared room with cleaning fee true than we would have expected if the variables were independent and there are more  shared room with cleaning fee false than we would have expected if the variables were independent. 
+
+Hence, we can say that there seems to be association between room_type and cleaning_fee.
+
+
+
+### room_type Vs city
+
+Moving on to investigating room_type with city using mosaic plot: 
+
+
+```{r}
+#similar case like above
+mosaic(~city + room_type, data = train, shade = TRUE)
+```
+
+
+Based on above mosaic plot Entire home/apt in NYC has the highest relative frequency followed by Entire home/apt in LA.
+
+We can also see that there are less Entire home/apt and shared room in NYC than we would have expected if the variables were independent and there are more Private in NYC than we would have expected if the variables were independent.
+
+However, there are fewer Private room in LA than we would have expected if the variables were independent and there are more Entire home/apt and shared room in LA than we would have expected if the variables were independent. 
+
+Hence, we can say that there seems to be association between room_type and city.
+
+### instant_bookable vs cleaning_fee
+
+
+We will now used the fourfold plots to study the relationship between instant bookable and cleaning fee. 
+
+ 
 
 ```{r}
 ##these variables are highly significant
 fourfold(xtabs(~ instant_bookable + cleaning_fee, data = train))
 ```
+There is no difference between in frequency of cleaning_fee being true or false when compared with value of instant_bookable because the confidence interval exactly bands overlap in the plot.
+
+Hence, the isn't any proof of association. 
 
 
-```{r}
-##Those two conditions of cleaning fee(i.e. either yes or no) were studied through the use of boxplot to see their relationship with log_price 
+### Bedrooms
 
-ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cleaning_fee")
-
-
-```
 
 ```{r}
 train %>% group_by(bedrooms) %>% select(bedrooms) %>% unique()
 count(train, bedrooms) %>% mutate(relative_freq = (n/sum(n)))
 hist(train$bedrooms)
 ```
-There is highest number of single bedroom./
+From the above histogram for bedrooms we can see that there is highest number of single bedroom among all property enlisted and some 2 bedrooms property. There is rarely any more than 4 bedrooms which makes sense as it is unusual to have more than 4 bedrooms,
 
 #```{r}
 #train$amenities
