@@ -1,0 +1,204 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+```{r}
+maindata <- read_excel("~/Documents/Spring2021/DataVisualization/Project/maindata.xlsx")
+sapply(maindata, function(x) sum(is.na(x)))
+```
+
+
+```{r}
+cseat_split <- initial_split(maindatab) 
+cseat_train <- training(cseat_split)
+cseat_test <- testing(cseat_split)
+```
+
+c) Fit a regression tree to the training set using Sales as the response and all the other variables as predictors (features). 
+
+```{r}
+tree_prep_recipe <- recipe(log_price ~ ., data = cseat_train, strata=log_price) %>% 
+  step_other(all_nominal(), threshold = .02) %>% #####collapse some factor levels to other
+  step_nzv(all_nominal())
+```
+
+```{r}
+####Let's create a model with a simple decision tree
+basic_tree_model <- decision_tree() %>% ##use defaults cost complexity, tree_depth, and min_n 
+  set_mode("regression") %>% 
+  set_engine("rpart")
+
+#let's look at what we are estimating
+basic_tree_model %>% translate()
+```
+
+```{r}
+###setup a workflow
+tree_workflow <- workflow() %>% 
+  add_recipe(tree_prep_recipe) %>% 
+  add_model(basic_tree_model) 
+
+####Estimate the model
+
+tree_workflow %>% fit(cseat_train) -> fitted_model ##just the fitted data
+```
+
+
+```{r}
+library(rattle) 
+###Can we graph a tree?
+###
+library(vip)
+fitted_model %>% pull_workflow_fit() %>% vip(geom= "point")
+fitted_model %>% pull_workflow_fit() %>% .$fit -> rpart_fit
+###this works for rpart models
+fancyRpartPlot(rpart_fit)
+```
+
+
+ Predict the values in the testing set and save the RMSE.
+
+```{r}
+####Predicted Values
+fitted_model %>% predict(new_data = cseat_test)
+
+```
+```{r}
+tree_workflow %>% last_fit(cseat_split) %>% collect_metrics()
+```
+
+
+e. Add a cost complexity parameter to your model, and use cross-validation to select the optimal level.
+
+```{r}
+carseat_folds <- vfold_cv(cseat_train, strata = log_price, k=10) #####
+
+tree_model <- decision_tree(cost_complexity = tune()) %>% ##use defaults cost complexity, tree_depth, and min_n 
+  set_mode("regression") %>% 
+  set_engine("rpart")
+
+###setup a workflow
+tree_workflow <- workflow() %>% 
+  add_recipe(tree_prep_recipe) %>% 
+  add_model(tree_model) 
+
+cost_grid <- grid_regular(cost_complexity(), levels = 20)
+
+tree_res <- tune_grid(
+  tree_workflow,
+  resamples = carseat_folds,
+  grid = cost_grid,
+  control = control_grid(save_pred = TRUE) ##this saves the predictions in the folds for the grid
+)
+
+tree_res %>% collect_metrics-> tree_metrics
+
+best_rmse<- select_best(tree_res,"rmse")
+
+final_tree<-finalize_workflow(
+  tree_workflow,
+  best_rmse
+)
+final_tree%>% last_fit(cseat_split)%>% collect_metrics()
+
+```
+
+Compare the MSEs in f and d. Did pruning improve RMSE?
+
+Here, we can see that pruning improved our RMSE from 0.4392349 to 0.4053188. 
+
+
+Now we will use Bagged tree
+
+```{r Q2}
+
+###use the code at the end of Bagged Trees.R for the importance plot.
+
+bagged_tree_model <- bag_tree(cost_complexity = tune(), tree_depth = tune(), min_n = tune()) %>% ##use defaults cost complexity, tree_depth, and min_n 
+  set_mode("regression") %>% 
+  set_engine("rpart")
+```
+
+```{r}
+bagged_grid <- grid_latin_hypercube(
+  tree_depth(), 
+  min_n(), 
+  cost_complexity(), 
+  size =30)     
+
+```
+
+```{r}
+tree_workflow <- workflow() %>% 
+  add_recipe(tree_prep_recipe) %>% ###same as before
+  add_model(bagged_tree_model) 
+
+```
+
+```{r}
+carseat_folds <- vfold_cv(cseat_train, strata = Sales, k=10) ##### #####
+```
+
+```{r}
+
+###use multiple cores
+doParallel::registerDoParallel(cores = 4)
+set.seed(1)
+
+####This will take a few minutes
+bagged_res <- tune_grid(
+  tree_workflow,
+  resamples = carseat_folds,
+  grid = bagged_grid,
+  control = control_grid(save_pred = TRUE) ##this saves the predictions in the folds for the grid
+)
+```
+
+```{r}
+bagged_res %>% collect_metrics -> bagged_metrics
+```
+
+```{r}
+bagged_metrics %>% 
+  filter(.metric == "rsq") %>% 
+  select(mean, cost_complexity, tree_depth, min_n) %>% 
+  pivot_longer(c(cost_complexity, tree_depth, min_n),
+               values_to ="value",
+               names_to = "parameter") %>% 
+  ggplot(aes(value, mean, color = parameter)) +
+  geom_point() + facet_wrap(~parameter, scales = "free_x")
+
+
+show_best(bagged_res, "rmse")
+best_rmse <- select_best(bagged_res, "rmse")
+
+```
+
+
+```{r}
+###Finalize the workflow
+final_bagged <- finalize_workflow(
+  tree_workflow,
+  best_rmse)
+```
+
+
+```{r}
+####Let's fit the model and see what is important
+library(forcats)
+library(tidyverse)
+final_bagged %>% 
+  fit(data = cseat_train) %>% 
+  pull_workflow_fit()-> final_fit 
+
+###There is no easy vip plot for this one
+###the variable importance factors are a nested object
+final_fit$fit$imp %>% mutate(term = forcats::fct_reorder(term,value )) %>% dplyr::slice(1:30) %>% 
+  ggplot(aes(y = value, x = term)) + geom_bar(stat = "Identity") +coord_flip()
+
+final_bagged  %>% last_fit(cseat_split) %>% collect_metrics()
+```
+
+Our rmse improved from 0.4053188 from the regression tree to 0.3962803 in bagged tree. 
+
