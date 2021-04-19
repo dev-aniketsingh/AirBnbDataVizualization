@@ -1,0 +1,179 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+```{r}
+library(readr)
+library(lattice)
+library(tidyverse)
+library(rticles)
+train <- read_csv("train.csv")
+```
+
+```{r}
+library(skimr)
+skim(train)
+```
+## GENERAL OVERVIEW OF THE DATA
+
+We use the Skimr library to perform Skim to get a general overview of the data. From the above information we can see that there are 74,111 rows in our data and 29 colums/variables. 
+
+Among these 29 variables in our data 15 data are character type, 4 are logical and 10 are numerical type.
+
+
+We can also see that there is a lot of missing datas. However, the variable with most frequency of missing data,
+and the ones that are most significant for our study are:
+
+
+First review                15864
+host_response_rate          18299
+review_scores_rating        16722
+
+In the quantitative variable the variance is greater than 0 for all our variables.
+
+There are also some index variable which are listed as character variables that do not contribute to our study. These index variables need to be addressed before we move to our study.
+
+When we look at the logical variable there are also factor level that appears to infrequent. The most insignificant infrequent factor level is stated below: 
+
+host_has_profile_pic  TRU: 73697, FAL: 226
+
+
+
+
+```{r}
+sapply(train, function(x) length(unique(x)))
+```
+In our data there are  we see 29 different variable in the given dataset.
+
+subtitle:  In-Depth analysis and Study of data
+
+Now after the study of all the data in a surface level we further move to and in-depth study significant data to get more understanding of the variables: 
+
+### 1)Cancellation policy 
+
+
+
+We further look at Cancellation policy to investigate it further for our data study:
+
+Despite in the initial study the cancellation policy appeared to be character when we have a deeper look we find that cancellation policy is instead a factor that needs to be accounted for. WE convert the cancellation policy to factor so we can look at the count to get an understanding of the distribution of this variable. We see that flexible, moderate and strict has the majority of frequency where as super_strict_30 and super_strict_60 has less significant frequency. 
+
+
+```{r}
+##The distinct cancellation_policy are recorded
+train %>% group_by(cancellation_policy) %>% select(cancellation_policy) %>% unique()->cancellation_policy_grouped
+cancellation_policy_grouped
+
+train %>% mutate_at(vars(cancellation_policy),as.factor)%>% count(train$cancellation_policy)
+
+
+
+
+```
+
+We learn from the above display that cancellation_policy has 5 types. The types have been listed above 
+
+### 2) Property_type
+
+We now move to Property_type variable to investigate this variable: 
+
+Similar to cancellation_policy we find propety type also need to be converted to factor and further study the variable and the frequency. 
+
+```{r}
+##Only 10 different distinct property_types are recorded
+train %>% group_by(property_type) %>% select(property_type) %>% unique()
+count(train, property_type) %>% mutate(relative_freq = (n/sum(n)))
+train %>% group_by(property_type) %>% select(property_type, log_price) %>%filter(property_type=="Apartment" | property_type =="Bed & Breakfast" | property_type =="Bungalow" | property_type == "Condominium" | property_type == "House" | property_type == "Loft" | property_type == "Townhouse") -> modified_property_type
+count(modified_property_type, property_type) 
+
+
+```
+
+The property type variable and the frequency of the most significant types are listed above in the table. We see that the Apartment type is the most frequent type. 
+
+
+
+
+```{r}
+##Those selected property_types were studied through the use of boxplot to see their relationship with log_price 
+ggplot(modified_property_type, aes(x= property_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs property_type")
+```
+
+
+
+
+```{r}
+##All the 5 different cancellation_policy were studied to see their relationship with log_price through the use of box plot
+library(ggplot2)
+ggplot(train, aes(x= cancellation_policy, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
+```
+
+```{r}
+##Three different room_types were studied and each of their relative frequency is calculated to find their individual share
+train %>% group_by(room_type) %>% select(room_type) %>% unique()
+count(train, room_type) %>% mutate(relative_freq = (n/sum(n)))
+
+```
+
+```{r}
+##Those 3 kinds of room_types were studied through the use of boxplot to see their relationship with log_price 
+ggplot(train, aes(x= room_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs room_type")
+
+```
+
+```{r}
+library(vcd)
+mosaic(~room_type + instant_bookable, data = train, shade = TRUE)
+
+```
+
+From above mosaic plot we see, the two-tiles shaped deep blue correspond to only one cell having shared room_type and true instant_bookable whose residuals are greater than +4 indicating much greater frequency in this cell than would be found if the hypothesis of independence. The two-tile shaped  having shared room_type with false instant_bookable  and entire home/apt room_type with true instant_bookable corresponds to the residuals between -2.0 and -3.7 which indicates the combination is extremely rare under the hypothesis of independence.
+
+```{r}
+library(vcd)
+mosaic(~cleaning_fee + city, data = train, shade = TRUE)
+mosaic(~city + cleaning_fee, data = train, shade = TRUE)
+```
+```{r}
+##similar case like above
+mosaic(~cleaning_fee + room_type, data = train, shade = TRUE)
+```
+```{r}
+#similar case like above
+mosaic(~city + cleaning_fee, data = train, shade = TRUE)
+```
+
+
+```{r}
+##these variables are highly significant
+fourfold(xtabs(~ instant_bookable + cleaning_fee, data = train))
+```
+
+
+```{r}
+##Those two conditions of cleaning fee(i.e. either yes or no) were studied through the use of boxplot to see their relationship with log_price 
+
+ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cleaning_fee")
+
+
+```
+
+```{r}
+train %>% group_by(bedrooms) %>% select(bedrooms) %>% unique()
+count(train, bedrooms) %>% mutate(relative_freq = (n/sum(n)))
+hist(train$bedrooms)
+```
+There is highest number of single bedroom./
+
+#```{r}
+#train$amenities
+#train$host_has_profile_pic
+#```
+
+
