@@ -1,10 +1,10 @@
 ---
 title: "R Notebook"
 output:
+  pdf_document: default
+  html_notebook: default
   html_document:
     df_print: paged
-  html_notebook: default
-  pdf_document: default
 ---
 
 This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
@@ -44,7 +44,15 @@ When we look at the logical variable there are also factor level that appears to
 
 host_has_profile_pic  TRU: 73697, FAL: 226
 
+These character variables times listed below has low number of n_unique data types so we further study these variables to see if they need to be converted to factor to be included in the study:
 
+
+roperty_type
+bed_type                    
+cancellation_policy        
+city                       
+Description 
+room_type                  
 
 
 ```{r}
@@ -79,6 +87,35 @@ train %>% mutate_at(vars(cancellation_policy),as.factor)%>% count(train$cancella
 
 We learn from the above display that cancellation_policy has 5 types. The types have been listed above 
 
+We now create a box plot to study the cancellation policy against log_price since the variables under study are quantitative variables: 
+
+
+```{r}
+##All the 5 different cancellation_policy were studied to see their relationship with log_price through the use of box plot
+library(ggplot2)
+ggplot(train, aes(x= cancellation_policy, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
+```
+Shape: 
+
+From the box plot we can see that super_strict_60 is skewed to the left.super strict is also skewed to the left but only slightly.Moderate seems to be skewed slightly to the right while flexible look to be normal distribution. 
+
+Center:
+
+From the above boxplot we see that median of log_price for super_strict_60 seems to be the  highest compared to all cancellation_policy. It is then followed by super_strict_strict_30, strict, moderate, flexible. There seems to be a pattern that as the cancellation policy become flexible the log_price median seems to decrease.
+
+Range:
+
+Super_strict_60 has the highest IQR compare to other cancellation_policy while super_strict_30 has the lowest IQR. 
+
+Unusual:
+
+There are many outliers for flexible, moderate and strict which is reasonable as they are the types with most frequency. 
+
+
+
+
+
+
 ### 2) Property_type
 
 We now move to Property_type variable to investigate this variable: 
@@ -95,8 +132,10 @@ count(modified_property_type, property_type)
 
 ```
 
-The property type variable and the frequency of the most significant types are listed above in the table. We see that the Apartment type is the most frequent type. 
+The property type variable and the frequency of the most significant types are listed above in the table. We see that the Apartment type is the most frequent type followed by House. 
 
+
+We now create a box plot to study the property type against log_price since the variables under study are quantitative variables: 
 
 
 
@@ -105,14 +144,29 @@ The property type variable and the frequency of the most significant types are l
 ggplot(modified_property_type, aes(x= property_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs property_type")
 ```
 
+Shape:
+
+House and township are skewed to the right. Bed & Breakfast is slightly skewed to the left. The other type has normal distribution.
+
+Center:
+Above we have log_price against property_type. We see that property_type does not have a strong effect on the log_price as median log_price for all property_type fall around the same area. The median log_price of condominium has the highest median among other property types. 
+
+Spread:
+
+House has the highest IQR however while Bungalow has the lowest IQR. 
+
+
+Unusual:
+
+There are most outliers for apartment which is also reasonable as it has the highest frequency.
+
+
+## Room Type
+
+Now we look at Room Type variable to study it in more depth:
 
 
 
-```{r}
-##All the 5 different cancellation_policy were studied to see their relationship with log_price through the use of box plot
-library(ggplot2)
-ggplot(train, aes(x= cancellation_policy, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cancellation_policy")
-```
 
 ```{r}
 ##Three different room_types were studied and each of their relative frequency is calculated to find their individual share
@@ -121,11 +175,37 @@ count(train, room_type) %>% mutate(relative_freq = (n/sum(n)))
 
 ```
 
+There are 3 types of room types namely Entire home/apt, Private room and Shared room. The frequency and relative frequency have been listed above. Shared room has the lowest relative frequency while Entire home/apt has the most relative frequency. 
+
+We now draw the box plot foor room_type vs log_price to look at the shape, center, outliers and spread of the data since the variables under study are quantitative variables:
+
 ```{r}
 ##Those 3 kinds of room_types were studied through the use of boxplot to see their relationship with log_price 
 ggplot(train, aes(x= room_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs room_type")
 
 ```
+Shape:
+
+Entire home/apt, private room and Shared room all have close to normal distribution. 
+
+Center:
+The  median log_price is highest for Entire home/apt followed by private room and lowest for Shared room. 
+
+Spread:
+
+The IQR for shared room is slightly more compared to Entire home/apt. Private has the lowest IQR.  
+
+
+Unusual:
+
+There seems to be more outliers for Private room. 
+
+
+
+
+
+
+
 
 ```{r}
 library(vcd)
