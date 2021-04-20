@@ -1,13 +1,13 @@
 ---
 title: "R Notebook"
 output:
-  pdf_document: default
-  html_notebook: default
   html_document:
     df_print: paged
+  html_notebook: default
+  pdf_document: default
 ---
 
-This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+## Group 5: Ronish Shrestha, Subham Singh, Bishal Lamichhane
 
 ```{r}
 library(readr)
@@ -325,6 +325,7 @@ We will now used the fourfold plots to study the relationship between instant bo
 
 ```{r}
 ##these variables are highly significant
+library(vcd)
 fourfold(xtabs(~ instant_bookable + cleaning_fee, data = train))
 ```
 There is no difference between in frequency of cleaning_fee being true or false when compared with value of instant_bookable because the confidence interval exactly bands overlap in the plot.
