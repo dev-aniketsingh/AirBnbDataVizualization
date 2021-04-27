@@ -2,10 +2,10 @@
 title: "Data Visualization Term Project"
 author: "Aniket K Singh, Bishal Lamichanne, Anup Chettri, Ronish Shrestha"
 output:
-  html_document:
-    df_print: paged
   html_notebook: default
   pdf_document: default
+  html_document:
+    df_print: paged
 ---
 
 
@@ -22,9 +22,13 @@ library(ggplot2)
 library(reticulate)
 library(skimr)
 ```
+ <font size="18">
+Introduction \
+</font>
+Airbnb is a rental platform that allows home-owner to list their properties(host) and guest can pay to stay in them for a duration of time. The price of these listings are set by the host themselves. The pricing of these properties is very important to get right, especially in the places with high competition. Even few dollars per night could make a difference. If the host put a price too high then there is a risk of missing potential guests and on the other hand, if they price too low then they might be missing the potential income. So it is a balancing act of which price to fix according to the different features of the rental properties.
 
-
-```{r}
+But which properties should the host focus on while deciding the pricing? Should they fix their price based on the number of bedrooms, or number of bathrooms or a combination of both? The goal of this project is try to solve this problem. We want to study which features of the rental properties are significant in predicting the log_price and which are not. Furthermore we will be using the Bayesian methods for this.
+```{r message=FALSE, warning=FALSE}
 train <- read_csv("train.csv")
 skim(train)
 ```
