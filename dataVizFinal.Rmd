@@ -1,0 +1,603 @@
+---
+title: "Data Visualization Term Project"
+author: "Aniket K Singh, Bishal Lamichanne, Anup Chettri, Ronish Shrestha"
+output:
+  html_document:
+    df_print: paged
+  html_notebook: default
+  pdf_document: default
+---
+
+
+```{r message=FALSE, warning=FALSE}
+library(readr)
+library(lattice)
+library(tidyverse)
+library(rticles)
+library(readxl)
+library(dplyr)
+library(kableExtra)
+library(leaflet)
+library(ggplot2)
+library(reticulate)
+library(skimr)
+```
+
+
+```{r}
+train <- read_csv("train.csv")
+skim(train)
+```
+## GENERAL OVERVIEW OF THE DATA
+
+We use the Skimr library to perform Skim to get a general overview of the data. From the above information we can see that there are 74,111 rows in our data and 29 colums/variables. 
+
+Among these 29 variables in our data 15 data are character type, 4 are logical and 10 are numerical type.
+
+
+We can also see that there is a lot of missing datas. However, the variable with most frequency of missing data,
+and the ones that are most significant for our study are:
+
+
+First review                15864
+host_response_rate          18299
+review_scores_rating        16722
+
+In the quantitative variable the variance is greater than 0 for all our variables.
+
+There are also some index variable which are listed as character variables that do not contribute to our study. These index variables need to be addressed before we move to our study.
+
+When we look at the logical variable there are also factor level that appears tobe infrequent. The most significant infrequent factor level is stated below: 
+
+host_has_profile_pic  TRU: 73697, FAL: 226
+
+These character variables listed below has low number of n_unique data types so we further study these variables to see if they need to be converted to factor to be included in the study:
+
+
+property_type
+bed_type                    
+cancellation_policy        
+city                       
+Description 
+room_type                  
+
+
+##############################################################################################################
+Dropping the missing values, as we had missing dates which is hard to impute, other missing values were less than 30%, so we didn't impute them or use any other missing value handling techniques. 
+```{r}
+train <- drop_na(train)
+```
+
+
+```{r}
+sapply(train, function(x) length(unique(x)))
+```
+
+In our data there are  we see 29 different variable in the given dataset.
+
+
+
+```{r}
+# Layout to split the screen
+layout(mat = matrix(c(1,2),2,1, byrow=TRUE),  height = c(1,8))
+ 
+# Draw the boxplot and the histogram 
+par(mar=c(0, 3.1, 1.1, 2.1))
+boxplot(train$log_price , horizontal=TRUE , ylim=c(0,8), xaxt="n" , col=rgb(0.8,0.8,0,0.5) , frame=F)
+par(mar=c(4, 3.1, 1.1, 2.1))
+hist(train$log_price , breaks=40 , col=rgb(0.2,0.8,0.5,0.5) , border=F , main="" , xlab="log_price", xlim=c(-0,8))
+```
+
+
+We can see that log_price is almost symmetric around 5. However we can see there are a lots of outliers in the variable.
+
+
+Now after the study of all the data in a surface level we further move to and in-depth study of significant data to get more understanding of the variables: 
+
+### Geographical analysis 
+Let us look at how our data is distributed across different cities.
+
+```{r}
+
+m <- leaflet(train) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~longitude, ~latitude, color = "red",
+stroke=FALSE)
+m
+```
+Here we can see that our data contains rental listing for 6 different cities: Los Angeles, New York, DC, Boston, Chicago, San Fransico etc. Now let us look at the relationship between the predictor variables and the response variable. We will first examine graphically.
+
+First let us loook at the log price for NYC.
+
+```{r message=FALSE, warning=FALSE}
+maindata=train
+rows = (maindata$city== "NYC") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~longitude, ~latitude,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+We can see that among all the points, the top left part of the points seems have a higher log_price. That is the main NYC and Manhattan area. 
+
+Now let us look at Boston
+
+```{r}
+
+rows = (maindata$city== "Boston") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~longitude, ~latitude,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+We can see that top right part of the data points have the higer log_price compared to other parts of the city.
+
+Now we look at DC
+
+
+```{r}
+
+rows = (maindata$city== "DC") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~longitude, ~latitude,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+The parts like Capitol Hill and Dupont Cicle have relatively higher log_price compared to other parts.
+
+Now for San Francisco. 
+
+```{r}
+
+rows = (maindata$city== "SF") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~longitude, ~latitude,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+San Fransico has relatively uniform distribution for log_price comapred to other cities. Howerver the top part of the data points seems to have relatively higher log_price. 
+
+
+Now for LA.
+
+```{r}
+
+rows = (maindata$city== "LA") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~longitude, ~latitude,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+We can see that the bay area has relatively higher log_price in LA. 
+
+Finally, let us look at Chicago.
+
+```{r}
+
+rows = (maindata$city== "Chicago") 
+tmp = maindata[rows, ]
+
+mybins <- seq(2, 8, by=1.5)
+mypalette <- colorBin( palette="YlOrBr",
+domain=tmp$log_price,
+na.color="transparent",
+bins=mybins)
+
+m <- leaflet(tmp) %>%
+addTiles() %>%
+addProviderTiles("OpenStreetMap.BZH") %>%
+addCircleMarkers(~longitude, ~latitude,radius = ~log_price,
+fillColor = ~mypalette(log_price),
+fillOpacity = 0.5,
+color = "white",stroke=FALSE
+)%>%
+addLegend( pal=mypalette, values=~log_price, opacity=0.9,
+title = "Log_price", position = "bottomright" )
+m
+```
+
+We can see that some of the mid portion and the edge points have relativerly higer log_price in Chicago. 
+Overall, we can see that evern within the different cities there are certian parts that have higher log_price compared to other parts. Therefore, cities can also be a predictor of log_price. 
+
+Let us compare all the cities together. 
+
+```{r}
+#All the 5 different cancellation_policy were studied to see their relationship with log_price through the use of box plot
+
+p <- ggplot(train, aes(x= city, y=log_price))+
+  geom_boxplot(outlier.colour="black", outlier.shape=1,
+                outlier.size=1)+
+  ggtitle("Boxplot for log_price vs city") 
+p 
+
+```
+
+We can see that Boston and SF has the relative higher average means compared to other cities. 
+
+### Numeric Variables
+
+Now we will examine the correlation between the numberic variables and the log_price. We will do scatter plot for this.
+
+```{r}
+train %>% filter(review_scores_rating > 60)->tmp
+par(mfrow=c(2,2))
+ggplot(data=train, aes(x=beds, log_price)) + geom_point(col="#69b3a2", size=0.5) ->beds
+ggplot(data=train, aes(x=bathrooms, log_price)) + geom_point(col="#69b3a2", size=0.5) ->bathroom
+ggplot(data=train, aes(x=bedrooms, log_price)) + geom_point(col="#69b3a2", size=0.5) ->bedroom
+ggplot(data=train, aes(x=accommodates, log_price)) + geom_point(col="#69b3a2", size=0.5) -> acc
+
+ggpubr::ggarrange(beds, bathroom, bedroom ,acc,
+          ncol = 2, nrow = 2)
+```
+
+We can see that overall the log_price increase as the value for these numeric variable increases. This matches with our general intuition that the price of the propertes depends upon the number of different characterstics. For example, as the number of beds increases, the log_price increses and so does for the number of bathrooms, bedrooms and accommodates. 
+
+```{r}
+ggplot(data=train, aes(x=host_response_rate, log_price)) + geom_point(col="#69b3a2", size=0.5) ->response
+ggplot(data=train, aes(x=number_of_reviews, log_price)) + geom_point(col="#69b3a2", size=0.5) -> review
+ggplot(data=train, aes(x=review_scores_rating, log_price)) + geom_point(col="#69b3a2", size=0.5) -> score
+
+ggpubr::ggarrange(response, review ,score,
+          ncol = 2, nrow = 2)
+
+```
+
+ 
+
+Let's now look into different categorical variables in the dataset
+
+### 1)Cancellation policy 
+
+
+
+We further look at Cancellation policy to investigate it further for our data study:
+
+Despite in the initial study the cancellation policy appeared to be character when we have a deeper look we find that cancellation policy is instead a factor that needs to be accounted for. WE convert the cancellation policy to factor so we can look at the count to get an understanding of the distribution of this variable. We see that flexible, moderate and strict has the majority of frequency where as super_strict_30 and super_strict_60 has less significant frequency. 
+
+
+```{r}
+##The distinct cancellation_policy are recorded
+train %>% group_by(cancellation_policy) %>% select(cancellation_policy) %>% unique()->cancellation_policy_grouped
+cancellation_policy_grouped
+
+train %>% mutate_at(vars(cancellation_policy),as.factor)%>% count(train$cancellation_policy)
+```
+
+We learn from the above display that cancellation_policy has 5 types. The types have been listed above 
+
+We now create a box plot to study the cancellation policy against log_price since the variables under study are quantitative variables against qualitative variables:
+```{r}
+##All the 5 different cancellation_policy were studied to see their relationship with log_price through the use of box plot
+
+p <- ggplot(train, aes(x= cancellation_policy, y=log_price))+
+  geom_boxplot(outlier.colour="black", outlier.shape=1,
+                outlier.size=1)+
+  ggtitle("Boxplot for log_price vs cancellation_policy") 
+p + theme_minimal()
+
+
+```
+
+Shape: 
+
+From the box plot we can see that super_strict_60 is skewed to the left.super strict is also skewed to the left but only slightly.Moderate seems to be skewed slightly to the right while flexible look to be normal distribution. 
+
+Center:
+
+From the above boxplot we see that median of log_price for super_strict_60 seems to be the  highest compared to all cancellation_policy. It is then followed by super_strict_strict_30, strict, moderate, flexible. There seems to be a pattern that as the cancellation policy become flexible the log_price median seems to decrease.
+
+Range:
+
+Super_strict_60 has the highest IQR compare to other cancellation_policy while super_strict_30 has the lowest IQR. 
+
+Unusual:
+
+There are many outliers for flexible, moderate and strict which is reasonable as they are the types with most frequency. 
+
+### 2) Property_type
+
+We now move to Property_type variable to investigate this variable: 
+
+Similar to cancellation_policy we find propety type also need to be converted to factor and further study the variable and the frequency. 
+
+```{r}
+##Only 10 different distinct property_types are recorded
+train %>% group_by(property_type) %>% select(property_type) %>% unique()
+count(train, property_type) %>% mutate(relative_freq = (n/sum(n)))
+train %>% group_by(property_type) %>% select(property_type, log_price) %>%filter(property_type=="Apartment" | property_type =="Bed & Breakfast" | property_type =="Bungalow" | property_type == "Condominium" | property_type == "House" | property_type == "Loft" | property_type == "Townhouse") -> modified_property_type
+count(modified_property_type, property_type) 
+
+
+```
+
+The property type variable and the frequency of the most significant types are listed above in the table. We see that the Apartment type is the most frequent type followed by House. 
+
+
+We now create a box plot to study the property type against log_price since the variables under study are quantitative variables against qualitative variables: 
+
+
+
+```{r}
+##Those selected property_types were studied through the use of boxplot to see their relationship with log_price 
+ggplot(modified_property_type, aes(x= property_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs property_type")
+```
+
+Shape:
+
+House and township are skewed to the right. Bed & Breakfast is slightly skewed to the left. The other type has normal distribution.
+
+Center:
+Above we have log_price against property_type. We see that property_type does not have a strong effect on the log_price as median log_price for all property_type fall around the same area. The median log_price of condominium has the highest median among other property types. 
+
+Spread:
+
+House has the highest IQR however while Bungalow has the lowest IQR. 
+
+
+Unusual:
+
+There are most outliers for apartment which is also reasonable as it has the highest frequency.
+
+
+## 3) Room Type
+
+Now we look at Room Type variable to study it in more depth:
+
+
+
+
+```{r}
+##Three different room_types were studied and each of their relative frequency is calculated to find their individual share
+train %>% group_by(room_type) %>% select(room_type) %>% unique()
+count(train, room_type) %>% mutate(relative_freq = (n/sum(n)))
+
+```
+
+There are 3 types of room types namely Entire home/apt, Private room and Shared room. The frequency and relative frequency have been listed above. Shared room has the lowest relative frequency while Entire home/apt has the most relative frequency. 
+
+We now draw the box plot foor room_type vs log_price to look at the shape, center, outliers and spread of the data since the variables under study are quantitative variables against qualitative variables:
+
+```{r}
+##Those 3 kinds of room_types were studied through the use of boxplot to see their relationship with log_price 
+ggplot(train, aes(x= room_type, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs room_type")
+
+```
+Shape:
+
+Entire home/apt, private room and Shared room all have close to normal distribution. 
+
+Center:
+The  median log_price is highest for Entire home/apt followed by private room and lowest for Shared room. 
+
+Spread:
+
+The IQR for shared room is slightly more compared to Entire home/apt. Private has the lowest IQR.  
+
+
+Unusual:
+
+There seems to be more outliers for Private room. 
+
+
+
+
+
+### 4) Cleaning fee
+
+
+We will now investigate cleaning fee against log_price to further understand the data. For this we will plot a box plot as there is a qualitative and a quantitative variable:
+
+```{r}
+##Those two conditions of cleaning fee(i.e. either yes or no) were studied through the use of boxplot to see their relationship with log_price 
+
+ggplot(train, aes(x= cleaning_fee, y=log_price))+geom_boxplot()+ ggtitle("Boxplot for log_price vs cleaning_fee")
+
+
+```
+Shape:
+
+Both cleaning fee false and true has a close to normal distribution. 
+
+Center:
+The  median log_price is highest for cleaning_fee true than cleaning_fee false but it is very slight.  
+
+Spread:
+
+The IQR for both cleaning fee false and true are very much comparable and looks equal.  
+
+
+Unusual:
+
+There seems to be outliers for both cleaning fee false and true. 
+
+
+
+## Assosiation between the predictor variables
+
+
+Here, we try to investigate the relation/association between the predictor variables in our dataset to get the understanding of the predictor variables. We are also interested to see which predictor variables have similar effect.
+
+
+### room_type vs instant_bookable
+Initially we investigate room_type and instant_bookable.Since both the variables under study are both qualitative variables we used mosaic plot to investigate the association. 
+
+
+
+```{r}
+library(vcd)
+mosaic(~room_type + instant_bookable, data = train, shade = TRUE)
+
+```
+
+From above mosaic plot we see, the two-tiles shaped deep blue correspond to only one cell having shared room_type and true instant_bookable whose residuals are greater than +4 indicating much greater frequency in this cell than would be found if the hypothesis of independence. The two-tile shaped  having shared room_type with false instant_bookable  and entire home/apt room_type with true instant_bookable corresponds to the residuals between -2.0 and -3.7 which indicates the combination is extremely rare under the hypothesis of independence.
+
+
+
+
+### city vs cleaning_fee
+
+Now, we investigate the association between cleaning_fee and city using mosaic plot. 
+
+```{r}
+library(vcd)
+mosaic(~ city+cleaning_fee , data = train, shade = TRUE)
+```
+
+Based on above mosaic plot property with cleaning fee true in NYC and LA has the highest relative frequency.
+
+We can also see that there are more property with cleaning fee false in NYC than we would have expected if the variables were independent and there are less property with cleaning fee True in NYC than we would have expected if the variables were independent.
+
+However, there are fewer property with cleaning fee false in LA than we would have expected if the variables were independent and there are more property with cleaning fee true in LA than we would have expected if the variables were independent. 
+
+Hence, we can say that there seems to be association between two variables.
+
+
+
+
+### room_type vs cleaning_fee
+
+We will now investigate the room_type and cleaning_fee similarly using the mosaic plot: 
+
+```{r}
+##similar case like above
+mosaic(~ room_type+cleaning_fee, data = train, shade = TRUE)
+```
+
+
+Based on above mosaic plot Entire home/apt with cleaning fee true has the highest relative frequency.
+
+We can also see that there are more Entire home/apt with cleaning fee true than we would have expected if the variables were independent and there are less Entire home/apt with cleaning fee false than we would have expected if the variables were independent.
+
+However, there are fewer private room with cleaning fee true than we would have expected if the variables were independent and there are more  private room with cleaning fee false than we would have expected if the variables were independent. 
+
+Finally,there are fewer shared room with cleaning fee true than we would have expected if the variables were independent and there are more  shared room with cleaning fee false than we would have expected if the variables were independent. 
+
+Hence, we can say that there seems to be association between room_type and cleaning_fee.
+
+
+
+### room_type Vs city
+
+Moving on to investigating room_type with city using mosaic plot: 
+
+
+```{r}
+#similar case like above
+mosaic(~city + room_type, data = train, shade = TRUE)
+```
+
+
+Based on above mosaic plot Entire home/apt in NYC has the highest relative frequency followed by Entire home/apt in LA.
+
+We can also see that there are less Entire home/apt and shared room in NYC than we would have expected if the variables were independent and there are more Private in NYC than we would have expected if the variables were independent.
+
+However, there are fewer Private room in LA than we would have expected if the variables were independent and there are more Entire home/apt and shared room in LA than we would have expected if the variables were independent. 
+
+Hence, we can say that there seems to be association between room_type and city.
+
+### instant_bookable vs cleaning_fee
+
+
+We will now used the fourfold plots to study the relationship between instant bookable and cleaning fee. 
+
+ 
+
+```{r}
+##these variables are highly significant
+library(vcd)
+fourfold(xtabs(~ instant_bookable + cleaning_fee, data = train))
+```
+There is no difference between in frequency of cleaning_fee being true or false when compared with value of instant_bookable because the confidence interval exactly bands overlap in the plot.
+
+Hence, the isn't any proof of association. 
+
+
+### Bedrooms
+
+
+```{r}
+train %>% group_by(bedrooms) %>% select(bedrooms) %>% unique()
+count(train, bedrooms) %>% mutate(relative_freq = (n/sum(n)))
+hist(train$bedrooms)
+```
+From the above histogram for bedrooms we can see that there is highest number of single bedroom among all property enlisted and some 2 bedrooms property. There is rarely any more than 4 bedrooms which makes sense as it is unusual to have more than 4 bedrooms,
+
+

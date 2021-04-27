@@ -14,7 +14,7 @@ library(reticulate)
 
 
 ```{r}
-maindata <- read_excel("~/Documents/Spring2021/DataVisualization/Project/maindata.xlsx")
+maindata <- read_excel("maindata.xlsx")
 tmp=maindata
 ```
 
@@ -83,7 +83,7 @@ From the map above, we can see that the properties listed in our datset are from
 
 ### NYC 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 
 rows = (maindata$city== "NYC") 
 tmp = maindata[rows, ]
@@ -262,7 +262,7 @@ bins=mybins)
 m <- leaflet(tmp) %>%
 addTiles() %>%
 addProviderTiles("OpenStreetMap.BZH") %>%
-addCircleMarkers(~long, ~lat,radius = ~log_price,
+addCircleMarkers(~longitute, ~latitude,radius = ~log_price,
 fillColor = ~mypalette(property_type),
 fillOpacity = 0.5,
 color = "white",stroke=FALSE
