@@ -2,10 +2,10 @@
 title: "Data Visualization Term Project"
 author: "Aniket K Singh, Bishal Lamichanne, Anup Chettri, Ronish Shrestha"
 output:
-  html_notebook: default
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
+  html_notebook: default
 ---
 
 
@@ -604,4 +604,8 @@ hist(train$bedrooms)
 ```
 From the above histogram for bedrooms we can see that there is highest number of single bedroom among all property enlisted and some 2 bedrooms property. There is rarely any more than 4 bedrooms which makes sense as it is unusual to have more than 4 bedrooms,
 
+<font size="12"> 
+Conclusion \
+</font>
+Overall we can see that categorical variables are more important feature for log_price. 
 
