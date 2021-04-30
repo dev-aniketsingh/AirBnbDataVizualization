@@ -607,5 +607,5 @@ From the above histogram for bedrooms we can see that there is highest number of
 <font size="12"> 
 Conclusion \
 </font>
-Overall we can see that categorical variables are more important feature for log_price. 
+We can observe from our analysis that categorical variables such as room type, cleaning fee and also geolocation are important features for log_price. Overall we can conclude that categorical variables are more important feature that impacts the log_price. 
 
